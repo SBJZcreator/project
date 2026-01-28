@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "app.py",  // 你的 Flask 主文件名称（比如 app.py/run.py）
+      "src": "app.py",
       "use": "@vercel/python"
     }
   ],
@@ -12,4 +12,5 @@
       "dest": "app.py"
     }
   ]
+
 }
