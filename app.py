@@ -7,6 +7,7 @@ import os
 # 初始化 Flask 应用
 app = Flask(__name__)
 CORS(app)  # 允许跨域请求
+app.config['JSON_AS_ASCII'] = False
 
 # 解决 pandas 读取 Excel 的引擎警告，指定默认引擎
 pd.set_option('mode.chained_assignment', None)
@@ -216,4 +217,5 @@ if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0', port=port)
 
 # 3. 关键：Vercel 需要明确导出 app 实例
+
 application = app  # 兼容 Gunicorn 等 WSGI 服务器的命名规范
