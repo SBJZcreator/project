@@ -7,7 +7,14 @@ import os
 # 初始化 Flask 应用
 app = Flask(__name__)
 CORS(app)  # 允许跨域请求
-app.config['JSON_AS_ASCII'] = False
+
+# ========== 核心新增：全局中文编码处理 ==========
+@app.after_request
+def after_request(response):
+    """确保所有 JSON 响应都使用 UTF-8 编码，解决中文显示为 Unicode 的问题"""
+    if response.content_type == 'application/json':
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+    return response
 
 # 解决 pandas 读取 Excel 的引擎警告，指定默认引擎
 pd.set_option('mode.chained_assignment', None)
