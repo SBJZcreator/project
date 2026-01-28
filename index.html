@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>烟草数据筛选系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 600;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+        
+        .upload-section {
+            margin-bottom: 30px;
+        }
+        
+        .file-input-container {
+            margin-bottom: 25px;
+        }
+        
+        .file-label {
+            display: block;
+            color: #555;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 16px;
+        }
+        
+        .file-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            background: #f9f9f9;
+            font-size: 14px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .file-input:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .file-name {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .success-message {
+            display: none;
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error-message {
+            display: none;
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 5px;
+        }
+        
+        .info-box h3 {
+            color: #1565C0;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .info-box p {
+            color: #424242;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .file-format {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>烟草数据筛选系统</h1>
+        
+        <div class="info-box">
+            <h3>使用说明</h3>
+            <p>1. 上传编号列表文件（.txt格式，逗号分隔的编号）</p>
+            <p>2. 上传Excel数据文件（包含卷烟定量汇总表）</p>
+            <p>3. 点击筛选按钮，下载处理后的Excel文件</p>
+        </div>
+        
+        <div class="upload-section">
+            <div class="file-input-container">
+                <label class="file-label">1. 上传编号列表文件</label>
+                <input type="file" id="codesFile" class="file-input" accept=".txt,.csv">
+                <div class="file-format">支持.txt格式，编号用逗号分隔</div>
+                <div id="codesFileName" class="file-name"></div>
+            </div>
+            
+            <div class="file-input-container">
+                <label class="file-label">2. 上传Excel数据文件</label>
+                <input type="file" id="excelFile" class="file-input" accept=".xlsx,.xls">
+                <div class="file-format">支持.xlsx和.xls格式</div>
+                <div id="excelFileName" class="file-name"></div>
+            </div>
+        </div>
+        
+        <button id="processBtn" class="btn" onclick="processFiles()">开始筛选</button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>正在处理数据，请稍候...</p>
+        </div>
+        
+        <div class="success-message" id="successMessage">
+            文件处理完成！正在下载...
+        </div>
+        
+        <div class="error-message" id="errorMessage">
+            处理失败，请检查文件格式后重试
+        </div>
+        
+        <a id="downloadLink" class="btn" style="display: none;">下载处理后的文件</a>
+    </div>
+
+    <script>
+        // 显示选择的文件名
+        document.getElementById('codesFile').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name || '未选择文件';
+            document.getElementById('codesFileName').textContent = `已选择: ${fileName}`;
+        });
+        
+        document.getElementById('excelFile').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name || '未选择文件';
+            document.getElementById('excelFileName').textContent = `已选择: ${fileName}`;
+        });
+        
+        async function processFiles() {
+            const codesFile = document.getElementById('codesFile').files[0];
+            const excelFile = document.getElementById('excelFile').files[0];
+            
+            if (!codesFile || !excelFile) {
+                alert('请先选择两个文件');
+                return;
+            }
+            
+            // 显示加载动画
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('processBtn').disabled = true;
+            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            
+            const formData = new FormData();
+            formData.append('codes_file', codesFile);
+            formData.append('excel_file', excelFile);
+            
+            try {
+                const response = await fetch('http://localhost:5000/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    // 获取文件名
+                    const contentDisposition = response.headers.get('Content-Disposition');
+                    let filename = 'filtered_tobacco_data.xlsx';
+                    if (contentDisposition) {
+                        const matches = /filename="?(.+)"?/g.exec(contentDisposition);
+                        if (matches && matches[1]) {
+                            filename = matches[1];
+                        }
+                    }
+                    
+                    // 创建Blob对象并下载
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    
+                    // 显示成功消息
+                    document.getElementById('successMessage').style.display = 'block';
+                } else {
+                    // 显示错误信息
+                    const errorData = await response.json();
+                    document.getElementById('errorMessage').textContent = 
+                        `处理失败: ${errorData.error || '服务器错误'}`;
+                    document.getElementById('errorMessage').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('errorMessage').textContent = 
+                    '网络错误，请检查服务器是否启动';
+                document.getElementById('errorMessage').style.display = 'block';
+            } finally {
+                // 隐藏加载动画
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('processBtn').disabled = false;
+            }
+        }
+        
+        // 示例编号列表（如果需要示例文件，可以创建）
+        function createExampleFile() {
+            const exampleCodes = "21023025,21023026,23033304,31013148,31013202,31013210,31019914,32023014,33013152,33013171,33013181,34010167,34010178,34010182,35013402,35020811,37023019,41050242,41050245,43010148,43020546,44073526,45033631,48013203,48013263,48013278,48013280,48013281,48050123,48090216,53010123,53010165,53010172,53010186,53010188,53010189,53010196,53010197,53010198,61013220,31013149,32013530,41050260,42013048,42013064,43010121,53010155,15010405,32013525,33013161,48013265,53023046,13010126,13010144,15010409,34010176,12013908,22023436,37023026,42013054,43020560,52090744,62010230,32013519,34010159,53023041,89023701,34010177,35013428,35013469,43020501,44010733,45033708,48013261,48023721,35013457,35013462,36013040,37023007,44100205,48023716,53023030,53010182";
+            
+            const blob = new Blob([exampleCodes], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'example_codes.txt';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+        
+        // 如果需要，可以添加创建示例文件的按钮
+        // document.getElementById('createExample').addEventListener('click', createExampleFile);
+    </script>
+</body>
+</html>
